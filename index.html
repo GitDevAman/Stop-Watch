@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style> 
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+  }
+  
+  body {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+  
+  /* Container */
+  #container {
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    width: 95%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    text-align: center;
+  }
+  
+  /* Timer Display */
+  #timer {
+    font-size: 5rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+  }
+  
+  /* Buttons */
+  button {
+    padding: 0.75rem 1.5rem;
+    margin: 0.4rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.25s ease;
+    color: white;
+    min-width: 90px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+  }
+  
+  /* Button Colors */
+  #start {
+    background: #00ff88;
+    color: #000;
+    font-weight: bold;
+  }
+  
+  #stop {
+    background: #ff3b3b;
+  }
+  
+  #reset {
+    background: #ffc107;
+    color: #000;
+    font-weight: 500;
+  }
+  
+  #continue {
+    background: #0dcaf0;
+  }
+  
+  #lapbutton {
+    background: #8e44ad;
+  }
+  
+  button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(255,255,255,0.3);
+  }
+  
+  /* Lap Display */
+  #lap {
+    margin-top: 2rem;
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 16px;
+    box-shadow: inset 0 1px 6px rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Lap Entry */
+  #lap div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    margin-bottom: 0.6rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  /* Lap Number */
+  #lap div span:first-child {
+    font-weight: bold;
+    color: #00ffcc;
+    width: 20%;
+  }
+  
+  /* Lap Time */
+  #lap div span:nth-child(2) {
+    font-family: monospace;
+    width: 40%;
+    text-align: center;
+  }
+  
+  /* Lap Difference */
+  #lap div span:last-child {
+    font-family: monospace;
+    width: 30%;
+    text-align: right;
+    color: #76ff03;
+  }
+  
+</style>
+</head>
+<body>
+    <div id="container">
+        <div id="timer">00:00</div>
+        <button id="start" >Start</button>
+        <button id="continue" style="display:none;">▶️</button>
+        <button id="stop" style="display:none;">Stop</button>
+        <button id="reset" style="display:none;">Reset</button>
+        <button id="lapbutton" style="display:none;" >Lap</button>
+        <div id="lap"></div>
+      
+    </div>
+    <script>
+let div=document.getElementById("timer");
+let start=document.getElementById("start");
+let stop=document.getElementById("stop");
+let reset=document.getElementById("reset");
+let Continue=document.getElementById("continue");
+let lap=document.getElementById("lap");
+let lapbutton=document.querySelector("#lapbutton");
+let timer;
+let count=0;
+let second=0,s1=0,s2=0;
+let minutes=0;
+let isRunning=false;
+start.addEventListener("click",()=>{
+    resetMyStopwatch();
+    startMyStopwatch();
+    start.style.display="none";
+    reset.style.display="inline-block";
+    stop.style.display="inline-block";
+    lapbutton.style.display="inline-block";
+});
+
+Continue.addEventListener("click",()=>{
+    startMyStopwatch();
+    Continue.style.display="none";
+    stop.style.display="inline-block";
+});
+
+reset.addEventListener("click",()=>{
+    clearInterval(timer);
+    resetMyStopwatch();
+    reset.style.display="none";
+    stop.style.display="none";
+    Continue.style.display="none";
+    start.style.display="inline-block";
+    lap.innerText="";
+    count=0;
+    lapbutton.style.display="none";
+});
+
+stop.addEventListener("click",()=>{
+    clearInterval(timer);
+    isRunning=false;
+    stop.style.display="none";
+    Continue.style.display="inline-block";
+});
+
+lapbutton.addEventListener("click",()=>{
+let newdiv=document.createElement("div");
+let span1=document.createElement("span");
+let span2=document.createElement("span");
+let span3=document.createElement("span");
+let minStr = minutes < 10 ? "0" + minutes : minutes;
+let secStr = second < 10 ? "0" + second : second;
+span1.innerText=`${++count}.`;
+span2.innerText = `${minStr}:${secStr}`;
+const totalSec=s2-s1;
+s1=s2;
+let lapMin = Math.floor(totalSec / 60);
+let lapSec = totalSec % 60;
+let lapMinStr = lapMin < 10 ? "0" + lapMin : lapMin;
+let lapSecStr = lapSec < 10 ? "0" + lapSec : lapSec;
+span3.innerText = `+${lapMinStr}:${lapSecStr}`;
+newdiv.appendChild(span1);
+newdiv.appendChild(span2);
+newdiv.appendChild(span3);
+lap.appendChild(newdiv);
+});
+
+function startMyStopwatch(){
+    if(isRunning) return;
+    isRunning=true;
+    timer=setInterval(()=>{
+        second++;
+        s2++;
+        if(second>59)
+            {second=0;
+             minutes++;
+            }
+        const minStr = minutes < 10 ? "0" + minutes : minutes;
+        const secStr = second < 10 ? "0" + second : second;
+        div.innerText = `${minStr}:${secStr}`;
+        },1000);
+}
+
+function resetMyStopwatch(){
+    clearInterval(timer);
+    isRunning=false;
+    second=0;
+    minutes=0;
+    div.innerText="00:00";
+}
+</script>
+</body>
+</html>
